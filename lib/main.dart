@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:labwork1/service/orderService.dart';
+
+import 'entity/order.dart';
+import 'entity/orderStatus.dart';
+import 'entity/user.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,7 +35,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
   int _counter = 0;
+
+  String? _lastOrderUser;
+
+  OrderService _orderService = new OrderService();
 
   void _incrementCounter() {
     setState(() {
@@ -38,27 +48,59 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<void> _createOrder() async {
+    final randomName = "User: $_counter";
+    final user = User(randomName);
+
+    Order order = await _orderService.createOrder(
+      user,
+      comment: 'Тестовый заказ $randomName',
+    );
+    String orderName = order.getName;
+    OrderStatus status = order.getStatus;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Заказ: $orderName для $randomName получил статус: $status'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
         title: Text(widget.title),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: .center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            ElevatedButton.icon(
+              onPressed: _createOrder,
+              icon: const Icon(Icons.add_shopping_cart),
+              label: const Text('Создать заказ'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 30),
             const Text('You have pushed the button this many times:'),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            if (_counter > 10)
-              Text(
-                'Why are you clicking?',
-                style: Theme.of(context).textTheme.headlineMedium,
+            if (_lastOrderUser != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Text(
+                  'Последний заказ: $_lastOrderUser',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
               ),
           ],
         ),
